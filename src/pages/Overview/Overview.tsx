@@ -24,7 +24,7 @@ function isWithinPeriod(isoDate: string): boolean {
 function CurrencyAmounts({ totals }: { totals: [string, number][] }) {
   if (totals.length === 0) return <>{formatCurrency(0)}</>;
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1">
       {sortCurrencyEntries(totals).map(([currency, total]) => (
         <div key={currency}>{formatCurrency(total, currency)}</div>
       ))}

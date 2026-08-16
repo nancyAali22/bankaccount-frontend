@@ -1,8 +1,11 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Calendar, IdCard, Mail, MapPin, Phone, User } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { IconField } from "@/components/IconField";
+import { DialogBrandHeader } from "@/components/DialogBrandHeader";
 import { useCreateCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import {
   customerRegistrationSchema,
@@ -11,14 +14,7 @@ import {
 } from "@/lib/validation/customer.schema";
 import type { Customer } from "@/types/customer";
 import type { ApiError } from "@/types/apiError";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface CustomerFormDialogProps {
@@ -108,18 +104,19 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit customer" : "Add customer"}</DialogTitle>
-          <DialogDescription>
-            {isEdit
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg" showCloseButton={false}>
+        <DialogBrandHeader
+          icon={User}
+          title={isEdit ? "Edit customer" : "Add customer"}
+          description={
+            isEdit
               ? "Update this customer's contact details."
-              : "All KYC fields are validated before the record is created."}
-          </DialogDescription>
-        </DialogHeader>
+              : "All KYC fields are validated before the record is created."
+          }
+        />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -128,7 +125,9 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
                   <FormItem>
                     <FormLabel>First name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Amina" {...field} />
+                      <IconField icon={User}>
+                        <Input className="pl-8 pr-2.5" placeholder="Amina" {...field} />
+                      </IconField>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -141,7 +140,9 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
                   <FormItem>
                     <FormLabel>Last name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Hassan" {...field} />
+                      <IconField icon={User}>
+                        <Input className="pl-8 pr-2.5" placeholder="Hassan" {...field} />
+                      </IconField>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -157,7 +158,14 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
                   <FormItem>
                     <FormLabel>Email address</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="name@example.com" {...field} />
+                      <IconField icon={Mail}>
+                        <Input
+                          type="email"
+                          className="pl-8 pr-2.5"
+                          placeholder="name@example.com"
+                          {...field}
+                        />
+                      </IconField>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -170,7 +178,9 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
                   <FormItem>
                     <FormLabel>Phone number</FormLabel>
                     <FormControl>
-                      <Input placeholder="+20 100 000 0000" {...field} />
+                      <IconField icon={Phone}>
+                        <Input className="pl-8 pr-2.5" placeholder="+20 100 000 0000" {...field} />
+                      </IconField>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -186,7 +196,9 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
                   <FormItem>
                     <FormLabel>Date of birth</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <IconField icon={Calendar}>
+                        <Input type="date" className="pl-8 pr-2.5" {...field} />
+                      </IconField>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,12 +211,15 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
                   <FormItem>
                     <FormLabel>National ID / KYC number</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="29104120103882"
-                        disabled={isEdit}
-                        title={isEdit ? "The backend does not allow changing the national ID" : undefined}
-                        {...field}
-                      />
+                      <IconField icon={IdCard}>
+                        <Input
+                          className="pl-8 pr-2.5"
+                          placeholder="29104120103882"
+                          disabled={isEdit}
+                          title={isEdit ? "The backend does not allow changing the national ID" : undefined}
+                          {...field}
+                        />
+                      </IconField>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -219,7 +234,9 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
                 <FormItem>
                   <FormLabel>Mailing address</FormLabel>
                   <FormControl>
-                    <Input placeholder="Street, city" {...field} />
+                    <IconField icon={MapPin}>
+                      <Input className="pl-8 pr-2.5" placeholder="Street, city" {...field} />
+                    </IconField>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -230,7 +247,7 @@ export function CustomerFormDialog({ open, onOpenChange, customer }: CustomerFor
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button type="submit" className="bg-brand-900 text-white hover:bg-brand-800" disabled={mutation.isPending}>
                 {mutation.isPending ? "Saving…" : isEdit ? "Save changes" : "Create customer"}
               </Button>
             </DialogFooter>

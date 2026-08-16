@@ -214,6 +214,19 @@
       var(--brand-600) 100%
     );
   }
+
+  /*
+   * Very faint dot-grid texture used behind full-width detail pages (e.g.
+   * CustomerDetailPage) to avoid a flat, empty white background without
+   * competing with card content. Intentionally subtle — opacity is baked
+   * into the dot color itself so it reads as "texture", not "pattern".
+   */
+  .bg-dot-pattern {
+    background-image: radial-gradient(var(--brand-400) 1px, transparent 1px);
+    background-size: 22px 22px;
+    background-position: -8px -8px;
+    opacity: 0.06;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

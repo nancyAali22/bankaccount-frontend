@@ -3,39 +3,29 @@ import { useSearchParams } from "react-router-dom";
 import { AlertCircle, Plus, RefreshCw, Search, Users } from "lucide-react";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useAccounts } from "@/hooks/useAccounts";
+import { usePagination } from "@/hooks/usePagination";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CardPagination } from "@/pages/Overview/Components/CardPagination";
 import { CustomerFormDialog } from "./components/CustomerFormDialog";
 import { DeleteCustomerDialog } from "./components/DeleteCustomerDialog";
 import { CustomersTable } from "./components/CustomersTable";
 import type { Customer } from "@/types/customer";
 import type { Account } from "@/types/account";
 
+const PAGE_SIZE = 10;
+
 const CustomersPage = () => {
   const { data: customers, isLoading, isError, refetch } = useCustomers();
-  // Accounts are fetched once here (not per-customer) and grouped client-side
-  // below — the backend only exposes GET /api/accounts (all accounts) and
-  // GET /api/accounts?customerId= (one customer), so fetching all accounts
-  // once and grouping in memory avoids firing one request per row in the
-  // table, which is the N+1 pattern this project explicitly avoids.
   const { data: accounts } = useAccounts();
   const [search, setSearch] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [formCustomer, setFormCustomer] = useState<Customer | undefined>(undefined);
-  // Supports Overview's "Add customer" button, which links to
-  // /customers?action=add instead of duplicating this dialog on two pages.
-  // Read once via a lazy initializer (not an effect) so the dialog opens on
-  // the very first render instead of flashing closed-then-open, and so we
-  // never call setState synchronously inside an effect body.
   const [isFormOpen, setIsFormOpen] = useState(() => searchParams.get("action") === "add");
   const [deleteTarget, setDeleteTarget] = useState<Customer | undefined>(undefined);
 
-  // Strip `?action=add` from the URL once it has been consumed above, so
-  // refreshing or sharing the link doesn't keep reopening the dialog. This
-  // only touches router state (not a React state setter), so it's a
-  // legitimate effect: synchronizing the URL with what we've already read.
   useEffect(() => {
     if (searchParams.get("action") === "add") {
       searchParams.delete("action");
@@ -55,27 +45,37 @@ const CustomersPage = () => {
   }, [accounts]);
 
   const filteredCustomers = useMemo(() => {
-  if (!customers) return [];
-  // The backend's GET /api/customers has no guaranteed order (no ORDER BY
-  // in the repository query), so relying on server order made rows jump
-  // around after an edit. Sorting by id here keeps the table in a stable,
-  // predictable order (oldest customer first) no matter what order the
-  // backend happens to respond in.
-  const sorted = [...customers].sort((a, b) => a.id - b.id);
+    if (!customers) return [];
+    const sorted = [...customers].sort((a, b) => a.id - b.id);
 
-  const query = search.trim().toLowerCase();
-  if (!query) return sorted;
+    const query = search.trim().toLowerCase();
+    if (!query) return sorted;
 
-  return sorted.filter((customer) => {
-    const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase();
-    return (
-      fullName.includes(query) ||
-      customer.email.toLowerCase().includes(query) ||
-      customer.phoneNumber.toLowerCase().includes(query) ||
-      customer.nationalId.includes(query)
-    );
-  });
-}, [customers, search]);
+    return sorted.filter((customer) => {
+      const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase();
+      return (
+        fullName.includes(query) ||
+        customer.email.toLowerCase().includes(query) ||
+        customer.phoneNumber.toLowerCase().includes(query) ||
+        customer.nationalId.includes(query)
+      );
+    });
+  }, [customers, search]);
+
+  // 10 customers per page, applied AFTER search filtering (pagination reads
+  // from filteredCustomers, never from the raw `customers` list) — a search
+  // that narrows the list to 3 records shows "Page 1 of 1" for those 3, not
+  // for the original unfiltered count. `search` is passed as resetKey so a
+  // new search always lands back on page 1.
+  const {
+    page,
+    pageCount,
+    pageItems: paginatedCustomers,
+    hasPrevious,
+    hasNext,
+    goToPrevious,
+    goToNext,
+  } = usePagination(filteredCustomers, PAGE_SIZE, search);
 
   function openAddDialog() {
     setFormCustomer(undefined);
@@ -88,9 +88,9 @@ const CustomersPage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <div className="mx-auto w-full space-y-6 p-6 2xl:max-w-[1600px]">
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Customers</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -100,34 +100,26 @@ const CustomersPage = () => {
           </p>
         </div>
 
-        <Button onClick={openAddDialog}>
+        <Button onClick={openAddDialog} className="bg-gradient-brand text-white hover:opacity-90">
           <Plus /> Add customer
         </Button>
       </div>
 
-      {/* Search — client-side only: the backend's GET /api/customers has no
-          search/filter query params, so filtering the already-fetched list
-          in memory is the honest option instead of inventing a server-side
-          search endpoint that doesn't exist. This is fine at the current
-          scale; a growing customer base would be the trigger to ask for a
-          real backend search endpoint instead of filtering thousands of
-          records in the browser. */}
-      <div className="relative mb-4">
+      <div className="relative">
         <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search name, email, phone or KYC id"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           disabled={isLoading || isError}
-          className="pl-9"
+          className="max-w-md pl-9"
         />
       </div>
 
-      {/* Loading state */}
       {isLoading && (
-        <div className="overflow-hidden rounded-xl border">
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-4 border-b p-4 last:border-b-0">
+            <div key={i} className="flex items-center gap-4 border-b border-border p-4 last:border-b-0">
               <Skeleton className="size-9 rounded-full" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-40" />
@@ -139,9 +131,8 @@ const CustomersPage = () => {
         </div>
       )}
 
-      {/* Error state */}
       {isError && !isLoading && (
-        <div className="flex flex-col items-center gap-3 rounded-xl border p-10 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-10 text-center shadow-sm">
           <AlertCircle className="size-8 text-destructive" />
           <p className="font-medium">Couldn't load customers</p>
           <p className="text-sm text-muted-foreground">
@@ -153,30 +144,38 @@ const CustomersPage = () => {
         </div>
       )}
 
-      {/* Empty state */}
       {!isLoading && !isError && filteredCustomers.length === 0 && (
-        <div className="flex flex-col items-center gap-3 rounded-xl border p-10 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-10 text-center shadow-sm">
           <Users className="size-8 text-muted-foreground" />
           <p className="font-medium">{search ? "No customers found" : "No customers yet"}</p>
           <p className="text-sm text-muted-foreground">
             {search ? "Try a different search term." : "Add your first customer to get started."}
           </p>
           {!search && (
-            <Button onClick={openAddDialog} className="mt-2">
+            <Button onClick={openAddDialog} className="mt-2 bg-gradient-brand text-white hover:opacity-90">
               <Plus /> Add customer
             </Button>
           )}
         </div>
       )}
 
-      {/* Data */}
       {!isLoading && !isError && filteredCustomers.length > 0 && (
-        <CustomersTable
-          customers={filteredCustomers}
-          accountsByCustomer={accountsByCustomer}
-          onEdit={openEditDialog}
-          onDelete={setDeleteTarget}
-        />
+        <div>
+          <CustomersTable
+            customers={paginatedCustomers}
+            accountsByCustomer={accountsByCustomer}
+            onEdit={openEditDialog}
+            onDelete={setDeleteTarget}
+          />
+          <CardPagination
+            page={page}
+            pageCount={pageCount}
+            hasPrevious={hasPrevious}
+            hasNext={hasNext}
+            onPrevious={goToPrevious}
+            onNext={goToNext}
+          />
+        </div>
       )}
 
       <CustomerFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} customer={formCustomer} />

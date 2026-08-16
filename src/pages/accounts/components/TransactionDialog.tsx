@@ -1,20 +1,16 @@
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { ArrowDownLeft, ArrowUpRight, PenLine, WalletMinimal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { IconField } from "@/components/IconField";
+import { DialogBrandHeader } from "@/components/DialogBrandHeader";
 import { useDeposit, useWithdraw } from "@/hooks/useAccounts";
 import { transactionSchema, type TransactionFormValues } from "@/lib/validation/account.schema";
 import { formatCurrency } from "@/lib/formatCurrency";
 import type { ApiError } from "@/types/apiError";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface TransactionDialogProps {
@@ -87,16 +83,19 @@ export function TransactionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isWithdraw ? "Withdraw funds" : "Deposit funds"}</DialogTitle>
-          <DialogDescription>
-            {accountNumber} · available {formatCurrency(availableBalance, currency)}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md" showCloseButton={false}>
+        <DialogBrandHeader
+          icon={isWithdraw ? ArrowUpRight : ArrowDownLeft}
+          title={isWithdraw ? "Withdraw funds" : "Deposit funds"}
+          description={
+            <>
+              {accountNumber} · available {formatCurrency(availableBalance, currency)}
+            </>
+          }
+        />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
             <FormField
               control={form.control}
               name="amount"
@@ -104,7 +103,16 @@ export function TransactionDialog({
                 <FormItem>
                   <FormLabel>Amount ({currency})</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
+                    <IconField icon={WalletMinimal}>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        className="pl-8 pr-2.5"
+                        {...field}
+                      />
+                    </IconField>
                   </FormControl>
                   {exceedsBalance && !form.formState.errors.amount && (
                     <p className="text-sm text-amber-600">
@@ -124,7 +132,13 @@ export function TransactionDialog({
                 <FormItem>
                   <FormLabel>Description (optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder={isWithdraw ? "ATM withdrawal" : "Cash deposit"} {...field} />
+                    <IconField icon={PenLine}>
+                      <Input
+                        className="pl-8 pr-2.5"
+                        placeholder={isWithdraw ? "ATM withdrawal" : "Cash deposit"}
+                        {...field}
+                      />
+                    </IconField>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -135,7 +149,11 @@ export function TransactionDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button
+                type="submit"
+                className="bg-brand-900 text-white hover:bg-brand-800"
+                disabled={mutation.isPending}
+              >
                 {mutation.isPending
                   ? "Processing…"
                   : isWithdraw

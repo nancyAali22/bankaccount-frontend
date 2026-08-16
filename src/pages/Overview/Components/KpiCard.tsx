@@ -56,16 +56,16 @@ export function KpiCard({
         </div>
       </div>
 
-      <div className="mt-3 min-h-9">
+      <div className="mt-3 min-h-8">
         {isLoading ? (
-          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-6 w-20" />
         ) : isError ? (
           <div className="flex items-center gap-2 text-sm text-destructive">
             <AlertCircle className="size-4" aria-hidden="true" />
             <span>Unavailable</span>
           </div>
         ) : (
-          <div className="text-2xl font-semibold tracking-tight tabular-nums">{children}</div>
+          <div className="text-xl font-bold tracking-tight tabular-nums leading-snug">{children}</div>
         )}
       </div>
 

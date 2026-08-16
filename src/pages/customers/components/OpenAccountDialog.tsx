@@ -1,18 +1,13 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { Globe, Landmark, WalletCards } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DialogBrandHeader } from "@/components/DialogBrandHeader";
 import { useOpenAccount } from "@/hooks/useAccounts";
 import { openAccountSchema, type OpenAccountFormValues } from "@/lib/validation/account.schema";
 import type { ApiError } from "@/types/apiError";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -66,25 +61,28 @@ export function OpenAccountDialog({ open, onOpenChange, customerId, customerName
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Open a new account</DialogTitle>
-          <DialogDescription>
-            For {customerName}.{" "}
-            {/*
-              The reference design shows an "opening deposit" field, but
-              OpenAccountRequest on the backend has no `amount` field — it
-              cannot fund the account at creation time. Rather than invent
-              a field the API would silently ignore (or reject), the
-              account opens with a zero balance and the teller makes the
-              first deposit afterwards from the account detail page.
-            */}
-            The account opens with a $0 balance — use Deposit afterwards to fund it.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md" showCloseButton={false}>
+        <DialogBrandHeader
+          icon={WalletCards}
+          title="Open a new account"
+          description={
+            <>
+              For {customerName}.{" "}
+              {/*
+                The reference design shows an "opening deposit" field, but
+                OpenAccountRequest on the backend has no `amount` field — it
+                cannot fund the account at creation time. Rather than invent
+                a field the API would silently ignore (or reject), the
+                account opens with a zero balance and the teller makes the
+                first deposit afterwards from the account detail page.
+              */}
+              The account opens with a $0 balance — use Deposit afterwards to fund it.
+            </>
+          }
+        />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
             <FormField
               control={form.control}
               name="accountType"
@@ -94,7 +92,10 @@ export function OpenAccountDialog({ open, onOpenChange, customerId, customerName
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue />
+                        <span className="flex items-center gap-2">
+                          <Landmark className="size-4 text-brand-500" aria-hidden="true" />
+                          <SelectValue />
+                        </span>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -116,7 +117,10 @@ export function OpenAccountDialog({ open, onOpenChange, customerId, customerName
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue />
+                        <span className="flex items-center gap-2">
+                          <Globe className="size-4 text-brand-500" aria-hidden="true" />
+                          <SelectValue />
+                        </span>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -136,7 +140,11 @@ export function OpenAccountDialog({ open, onOpenChange, customerId, customerName
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={openAccountMutation.isPending}>
+              <Button
+                type="submit"
+                className="bg-brand-900 text-white hover:bg-brand-800"
+                disabled={openAccountMutation.isPending}
+              >
                 {openAccountMutation.isPending ? "Opening…" : "Open account"}
               </Button>
             </DialogFooter>

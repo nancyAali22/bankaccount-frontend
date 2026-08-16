@@ -1,7 +1,20 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
-import { AlertCircle, ArrowDownLeft, ArrowLeft, ArrowUpRight, Check, Copy } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowDownLeft,
+  ArrowLeft,
+  ArrowUpRight,
+  Calendar,
+  Check,
+  Copy,
+  CreditCard,
+  Globe,
+  Landmark,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,11 +45,41 @@ function CopyAccountNumber({ accountNumber }: { accountNumber: string }) {
       type="button"
       onClick={handleCopy}
       aria-label={copied ? "Account number copied" : "Copy account number"}
-      className="inline-flex items-center gap-1.5 rounded-md bg-white/10 px-2.5 py-1 font-mono text-xs text-white/90 transition-colors hover:bg-white/20"
+      className="inline-flex items-center gap-1.5 rounded-md bg-white/15 px-2.5 py-1 font-mono text-xs text-white transition-colors hover:bg-white/25"
     >
       {accountNumber}
       {copied ? <Check className="size-3.5" aria-hidden="true" /> : <Copy className="size-3.5" aria-hidden="true" />}
     </button>
+  );
+}
+
+/**
+ * Faint decorative wave + sparkle pattern behind the balance card. Pure
+ * SVG, aria-hidden, zero effect on layout or the numbers/text sitting on
+ * top of it — it only adds texture to the gradient background.
+ */
+function BalanceCardPattern() {
+  return (
+    <svg
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.12]"
+      viewBox="0 0 600 300"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M0 180 C 100 220, 200 140, 300 170 S 500 220, 600 160 L600 300 L0 300 Z"
+        fill="white"
+      />
+      <path
+        d="M0 220 C 120 250, 220 190, 320 210 S 500 260, 600 210 L600 300 L0 300 Z"
+        fill="white"
+        opacity="0.6"
+      />
+      <circle cx="520" cy="40" r="2" fill="white" />
+      <circle cx="480" cy="90" r="1.5" fill="white" />
+      <circle cx="550" cy="120" r="1.5" fill="white" />
+      <circle cx="440" cy="50" r="1" fill="white" />
+    </svg>
   );
 }
 
@@ -63,11 +106,11 @@ export default function AccountDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto w-full space-y-6 p-4 sm:p-6 2xl:max-w-[1600px]">
       {account && (
         <Link
           to={`/customers/${account.customerId}`}
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
           Back to {holder ? `${holder.firstName} ${holder.lastName}` : "customer"}
@@ -95,40 +138,70 @@ export default function AccountDetailPage() {
         <>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {/* Balance card */}
-            <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-teal-800 p-6 text-white shadow-md lg:col-span-2 lg:p-8">
-              <p className="text-xs uppercase tracking-wide text-white/70">Available balance</p>
-              <p className="mt-1 text-4xl font-semibold tabular-nums">
-                {formatCurrency(account.balance, account.currency)}
-              </p>
-              <div className="mt-4">
-                <CopyAccountNumber accountNumber={account.accountNumber} />
+            <div className="animate-card-enter relative overflow-hidden rounded-2xl bg-gradient-brand p-6 text-white shadow-lg lg:col-span-2 lg:p-8">
+              <BalanceCardPattern />
+
+              {/* Decorative bank icon, right side */}
+              <div
+                className="pointer-events-none absolute -right-6 top-1/2 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/25 sm:flex"
+                style={{ width: 140, height: 140 }}
+                aria-hidden="true"
+              >
+                <Landmark className="size-14 text-white/40" />
               </div>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Button variant="secondary" onClick={() => setDialogMode("deposit")}>
-                  <ArrowDownLeft /> Deposit
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
-                  onClick={() => setDialogMode("withdraw")}
-                >
-                  <ArrowUpRight /> Withdraw
-                </Button>
+
+              <div className="relative">
+                <p className="text-xs font-medium uppercase tracking-widest text-white/70">
+                  Available balance
+                </p>
+                <p className="mt-2 text-5xl font-bold tabular-nums">
+                  {formatCurrency(account.balance, account.currency)}
+                </p>
+                <div className="mt-4">
+                  <CopyAccountNumber accountNumber={account.accountNumber} />
+                </div>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button
+                    className="bg-brand-500 text-white hover:bg-brand-400"
+                    onClick={() => setDialogMode("deposit")}
+                  >
+                    <ArrowDownLeft /> Deposit
+                  </Button>
+                  <Button
+                    className="bg-white text-brand-900 hover:bg-white/90"
+                    onClick={() => setDialogMode("withdraw")}
+                  >
+                    <ArrowUpRight /> Withdraw
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Account info */}
-            <div className="rounded-2xl border bg-card p-6">
-              <h2 className="mb-4 text-sm font-medium">Account info</h2>
-              <dl className="space-y-3 text-sm">
-                <Row label="Holder" value={holder ? `${holder.firstName} ${holder.lastName}` : "—"} />
-                <Row label="Type" value={<Badge variant="secondary">{account.accountType}</Badge>} />
+            <div
+              className="animate-card-enter card-interactive rounded-2xl border bg-card p-6 shadow-sm"
+              style={{ animationDelay: "60ms" }}
+            >
+              <h2 className="mb-4 text-base font-semibold tracking-tight">Account info</h2>
+              <dl className="space-y-3.5 text-sm">
                 <Row
+                  icon={User}
+                  label="Holder"
+                  value={holder ? `${holder.firstName} ${holder.lastName}` : "—"}
+                />
+                <Row
+                  icon={CreditCard}
+                  label="Type"
+                  value={<Badge variant="secondary">{account.accountType}</Badge>}
+                />
+                <Row
+                  icon={ShieldCheck}
                   label="Status"
                   value={<Badge className={STATUS_STYLES[account.status]}>{account.status}</Badge>}
                 />
-                <Row label="Currency" value={account.currency} />
+                <Row icon={Globe} label="Currency" value={account.currency} />
                 <Row
+                  icon={Calendar}
                   label="Opened"
                   value={new Date(account.createdAt).toLocaleDateString("en-GB", {
                     day: "2-digit",
@@ -164,10 +237,23 @@ export default function AccountDetailPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: ReactNode }) {
+function Row({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof User;
+  label: string;
+  value: ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between">
-      <dt className="text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-2.5 text-muted-foreground">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+          <Icon className="size-3.5" aria-hidden="true" />
+        </span>
+        {label}
+      </dt>
       <dd className="font-medium">{value}</dd>
     </div>
   );
