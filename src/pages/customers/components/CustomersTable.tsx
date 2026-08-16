@@ -1,4 +1,5 @@
 import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,14 +41,10 @@ function TotalBalance({ accounts }: { accounts: Account[] }) {
 function RowActions({ customer, onEdit, onDelete }: { customer: Customer } & Pick<CustomersTableProps, "onEdit" | "onDelete">) {
   return (
     <div className="flex justify-end gap-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        disabled
-        aria-label={`View ${customer.firstName} ${customer.lastName}`}
-        title="Customer detail page coming soon"
-      >
-        <Eye className="size-4" />
+      <Button variant="ghost" size="icon" aria-label={`View ${customer.firstName} ${customer.lastName}`} asChild>
+        <Link to={`/customers/${customer.id}`}>
+          <Eye className="size-4" />
+        </Link>
       </Button>
       <Button
         variant="ghost"
@@ -97,9 +94,12 @@ export function CustomersTable({ customers, accountsByCustomer, onEdit, onDelete
                         <AvatarFallback>{getInitials(customer.firstName, customer.lastName)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">
+                        <Link
+                          to={`/customers/${customer.id}`}
+                          className="font-medium hover:underline"
+                        >
                           {customer.firstName} {customer.lastName}
-                        </div>
+                        </Link>
                         <div className="text-xs text-muted-foreground">Customer #{customer.id}</div>
                       </div>
                     </div>

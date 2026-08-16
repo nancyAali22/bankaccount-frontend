@@ -55,20 +55,27 @@ const CustomersPage = () => {
   }, [accounts]);
 
   const filteredCustomers = useMemo(() => {
-    if (!customers) return [];
-    const query = search.trim().toLowerCase();
-    if (!query) return customers;
+  if (!customers) return [];
+  // The backend's GET /api/customers has no guaranteed order (no ORDER BY
+  // in the repository query), so relying on server order made rows jump
+  // around after an edit. Sorting by id here keeps the table in a stable,
+  // predictable order (oldest customer first) no matter what order the
+  // backend happens to respond in.
+  const sorted = [...customers].sort((a, b) => a.id - b.id);
 
-    return customers.filter((customer) => {
-      const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase();
-      return (
-        fullName.includes(query) ||
-        customer.email.toLowerCase().includes(query) ||
-        customer.phoneNumber.toLowerCase().includes(query) ||
-        customer.nationalId.includes(query)
-      );
-    });
-  }, [customers, search]);
+  const query = search.trim().toLowerCase();
+  if (!query) return sorted;
+
+  return sorted.filter((customer) => {
+    const fullName = `${customer.firstName} ${customer.lastName}`.toLowerCase();
+    return (
+      fullName.includes(query) ||
+      customer.email.toLowerCase().includes(query) ||
+      customer.phoneNumber.toLowerCase().includes(query) ||
+      customer.nationalId.includes(query)
+    );
+  });
+}, [customers, search]);
 
   function openAddDialog() {
     setFormCustomer(undefined);

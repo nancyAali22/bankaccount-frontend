@@ -46,6 +46,23 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+
+    /*
+     * Brand identity tokens — the "expensive-looking" deep navy → teal
+     * gradient used across the app (hero banner, sidebar header icon,
+     * active nav accent). Defined once here and consumed everywhere via
+     * Tailwind classes (bg-brand-950, from-brand-900, text-brand-600, …)
+     * instead of hardcoded hex/oklch values scattered in components.
+     */
+    --color-brand-950: var(--brand-950);
+    --color-brand-900: var(--brand-900);
+    --color-brand-800: var(--brand-800);
+    --color-brand-700: var(--brand-700);
+    --color-brand-600: var(--brand-600);
+    --color-brand-500: var(--brand-500);
+    --color-brand-400: var(--brand-400);
+    --color-brand-100: var(--brand-100);
+    --color-brand-50: var(--brand-50);
 }
 
 :root {
@@ -67,20 +84,36 @@
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
     --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+
+    /* Chart palette — derived from the brand hue family (teal/navy) plus
+       harmonious supporting hues, replacing the old grayscale chart set. */
+    --chart-1: oklch(0.55 0.09 200);   /* teal — holdings / primary series */
+    --chart-2: oklch(0.62 0.14 250);   /* sky/indigo — customers / secondary */
+    --chart-3: oklch(0.72 0.15 75);    /* amber — frozen / caution */
+    --chart-4: oklch(0.62 0.2 25);     /* rose — withdrawals / negative */
+    --chart-5: oklch(0.75 0.13 165);   /* soft emerald — deposits / positive */
+
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-accent: oklch(0.94 0.03 200);
+    --sidebar-accent-foreground: oklch(0.32 0.06 220);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+
+    /* Brand gradient stops (deep navy → teal). Same values in light/dark
+       since this is a fixed identity color, not a surface color. */
+    --brand-950: oklch(0.24 0.045 255);
+    --brand-900: oklch(0.28 0.05 245);
+    --brand-800: oklch(0.32 0.06 225);
+    --brand-700: oklch(0.38 0.07 210);
+    --brand-600: oklch(0.47 0.085 200);
+    --brand-500: oklch(0.55 0.095 195);
+    --brand-400: oklch(0.66 0.1 190);
+    --brand-100: oklch(0.92 0.035 195);
+    --brand-50: oklch(0.97 0.015 195);
 }
 
 .dark {
@@ -102,19 +135,29 @@
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --chart-1: oklch(0.55 0.09 200);
+    --chart-2: oklch(0.62 0.14 250);
+    --chart-3: oklch(0.72 0.15 75);
+    --chart-4: oklch(0.62 0.2 25);
+    --chart-5: oklch(0.75 0.13 165);
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
     --sidebar-primary: oklch(0.488 0.243 264.376);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.32 0.05 200);
+    --sidebar-accent-foreground: oklch(0.9 0.03 195);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
+
+    --brand-950: oklch(0.24 0.045 255);
+    --brand-900: oklch(0.28 0.05 245);
+    --brand-800: oklch(0.32 0.06 225);
+    --brand-700: oklch(0.38 0.07 210);
+    --brand-600: oklch(0.47 0.085 200);
+    --brand-500: oklch(0.55 0.095 195);
+    --brand-400: oklch(0.66 0.1 190);
+    --brand-100: oklch(0.92 0.035 195);
+    --brand-50: oklch(0.97 0.015 195);
 }
 
 @layer base {
@@ -127,4 +170,63 @@
   html {
     @apply font-sans;
     }
+}
+
+/*
+ * Motion system — used by KPI cards, list mini-cards, and chart cards.
+ * Kept subtle and fast ("precise and confident", not bouncy) per the
+ * banking-tool tone. Every rule here is neutralized under
+ * prefers-reduced-motion below.
+ */
+@layer utilities {
+  @keyframes card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-card-enter {
+    animation: card-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .card-interactive {
+    transition-property: transform, box-shadow, border-color;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -10px color-mix(in oklch, var(--brand-800) 35%, transparent);
+    border-color: var(--brand-400);
+  }
+
+  .bg-gradient-brand {
+    background-image: linear-gradient(
+      135deg,
+      var(--brand-950) 0%,
+      var(--brand-800) 50%,
+      var(--brand-600) 100%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card-interactive:hover {
+    transform: none;
+  }
 }

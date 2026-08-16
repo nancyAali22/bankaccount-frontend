@@ -1,8 +1,10 @@
 import MainLayout from "@/Layout/MainLayout";
 import { createBrowserRouter } from "react-router-dom";
 import CustomersPage from "@/pages/customers/CustomersPage";
+import CustomerDetailPage from "@/pages/customers/CustomerDetailPage";
+import AccountDetailPage from "@/pages/accounts/AccountDetailPage";
 import Overview from "@/pages/Overview/Overview";
-
+import NotFoundPage from "@/pages/NotFoundPage";
 
 export const router = createBrowserRouter([
     {
@@ -10,8 +12,9 @@ export const router = createBrowserRouter([
         children: [
             { index: true, element: <Overview /> },
             { path: "customers", element: <CustomersPage /> },
-            { path: "accounts", element: <div className="p-6 text-lg font-medium">Accounts</div> },
-            { path: "transactions", element: <div className="p-6 text-lg font-medium">Transactions</div> },
+            { path: "customers/:id", element: <CustomerDetailPage /> },
+            { path: "accounts/:id", element: <AccountDetailPage /> },
+            { path: "*", element: <NotFoundPage /> },
         ],
     },
 ]);

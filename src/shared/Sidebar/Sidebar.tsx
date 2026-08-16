@@ -38,7 +38,7 @@ export default function SideBar() {
 
             {/* ── Header ─────────────────────────────── */}
             <SidebarHeader className="flex flex-row items-center gap-2 px-3 py-4">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-brand text-white">
                     <Landmark className="size-4" />
                 </div>
                 <div className="flex flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
@@ -57,24 +57,26 @@ export default function SideBar() {
             {/* ── Content ─────────────────────────────── */}
             <SidebarContent>
 
-                {/* Main nav */}
-                <SidebarGroup>
-                    <SidebarGroupLabel>Main</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            {mainNav.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                                        <NavLink to={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </NavLink>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+                {/* Main nav — wrapped in a <nav> landmark for screen readers */}
+                <nav aria-label="Main">
+                    <SidebarGroup>
+                        <SidebarGroupLabel>Main</SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {mainNav.map((item) => (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                                            <NavLink to={item.url}>
+                                                <item.icon />
+                                                <span>{item.title}</span>
+                                            </NavLink>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                </nav>
 
             </SidebarContent>
 

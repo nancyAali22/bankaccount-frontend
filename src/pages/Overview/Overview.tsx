@@ -4,13 +4,14 @@ import { useCustomers } from "@/hooks/useCustomers";
 import { useAccounts } from "@/hooks/useAccounts";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { sumByCurrency } from "@/lib/sumByCurrency";
+import { sortCurrencyEntries } from "@/lib/sortCurrencyEntries";
 import { AccountsByBalance } from "./Components/AccountsByBalance";
 import { KpiCard } from "./Components/KpiCard";
 
 import WelcomeSection from "./Components/WelcomeSection";
-import { RecentTransactions } from "../transactions/components/RecentTransaction";
+import { RecentTransactions } from "./Components/RecentTransactions";
+import { DashboardCharts } from "./Components/DashboardCharts";
 import { useDashboardTransactions } from "@/hooks/useDashboardTransactions";
-
 
 /** "This period" = the trailing 30 days, measured from each transaction's createdAt. */
 const PERIOD_DAYS = 30;
@@ -24,7 +25,7 @@ function CurrencyAmounts({ totals }: { totals: [string, number][] }) {
   if (totals.length === 0) return <>{formatCurrency(0)}</>;
   return (
     <div className="space-y-0.5">
-      {totals.map(([currency, total]) => (
+      {sortCurrencyEntries(totals).map(([currency, total]) => (
         <div key={currency}>{formatCurrency(total, currency)}</div>
       ))}
     </div>
@@ -39,6 +40,18 @@ const Overview = () => {
     isLoading: transactionsLoading,
     isError: transactionsError,
   } = useDashboardTransactions(accounts);
+
+  // customerId -> "First Last", built once here from the existing
+  // useCustomers() hook (no duplicate fetch) so "Accounts by balance" can
+  // show the account holder's name — AccountResponse itself has no name
+  // field, only customerId, so this join has to happen client-side.
+  const customerNames = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const customer of customers ?? []) {
+      map.set(customer.id, `${customer.firstName} ${customer.lastName}`.trim());
+    }
+    return map;
+  }, [customers]);
 
   // Sum balances grouped by currency. Accounts can be opened in different
   // currencies, so a single raw sum across all of them would be a wrong
@@ -78,16 +91,18 @@ const Overview = () => {
   const accountsCount = accounts?.length ?? 0;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-6">
+    <div className="mx-auto w-full space-y-6 p-6 2xl:max-w-[1600px]">
       <WelcomeSection />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           title="Customers"
           icon={Users}
+          accent="customers"
           isLoading={customersLoading}
           isError={customersError}
           hint="Registered records"
+          animationDelayMs={0}
         >
           {customers?.length ?? 0}
         </KpiCard>
@@ -95,9 +110,11 @@ const Overview = () => {
         <KpiCard
           title="Total holdings"
           icon={Wallet}
+          accent="holdings"
           isLoading={accountsLoading}
           isError={accountsError}
           hint={accountsCount > 0 ? `${accountsCount} account${accountsCount === 1 ? "" : "s"}` : undefined}
+          animationDelayMs={60}
         >
           <CurrencyAmounts totals={totalsByCurrency} />
         </KpiCard>
@@ -105,9 +122,11 @@ const Overview = () => {
         <KpiCard
           title="Deposits"
           icon={ArrowDownLeft}
+          accent="deposits"
           isLoading={accountsLoading || transactionsLoading}
           isError={accountsError || transactionsError}
           hint="Last 30 days"
+          animationDelayMs={120}
         >
           <CurrencyAmounts totals={depositsByCurrency} />
         </KpiCard>
@@ -115,22 +134,27 @@ const Overview = () => {
         <KpiCard
           title="Withdrawals"
           icon={ArrowUpRight}
+          accent="withdrawals"
           isLoading={accountsLoading || transactionsLoading}
           isError={accountsError || transactionsError}
           hint="Last 30 days"
+          animationDelayMs={180}
         >
           <CurrencyAmounts totals={withdrawalsByCurrency} />
         </KpiCard>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <RecentTransactions
-          transactions={transactions}
-          isLoading={transactionsLoading}
-          isError={transactionsError}
+        <RecentTransactions transactions={transactions} isLoading={transactionsLoading} isError={transactionsError} />
+        <AccountsByBalance
+          accounts={accounts}
+          customerNames={customerNames}
+          isLoading={accountsLoading}
+          isError={accountsError}
         />
-        <AccountsByBalance accounts={accounts} isLoading={accountsLoading} isError={accountsError} />
       </div>
+
+      <DashboardCharts accounts={accounts} isLoading={accountsLoading} isError={accountsError} />
     </div>
   );
 };
